@@ -1,12 +1,12 @@
 # 📚 Organizador de Aulas para Professores
 
-Esta é  uma atividade de uma aplicação Python que organiza automaticamente a grade de aulas semanais para uma instituição de ensino, respeitando restrições de horário e conflitos de professores.
+Este projeto é uma aplicação Python que organiza automaticamente a grade de aulas semanais para uma instituição de ensino, respeitando restrições de horário e conflitos de professores.
 
-Também conta com uma **interface gráfica simples** usando Tkinter, além de testes automatizados com `pytest`.
+Também conta com uma **interface gráfica com tema escuro** usando Tkinter, além de testes automatizados com `pytest`.
 
 ---
 
-## Funcionalidades
+## &#x20;Funcionalidades
 
 * Leitura de um arquivo `aulas.txt` contendo as propostas de aulas.
 * Organização automática das aulas por dia e turno (manhã/tarde).
@@ -95,7 +95,7 @@ organizador_de_aulas/
 
 ## Autor
 
-Desenvolvido por Quézia Souza
+Desenvolvido por Quezia Souza.
 Projeto para fins educacionais, com foco em organização de horários e estruturas de dados.
 
 ---
