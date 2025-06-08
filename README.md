@@ -95,7 +95,7 @@ organizador_de_aulas/
 
 ## Autor
 
-Desenvolvido por \Quézia Souza
+Desenvolvido por Quézia Souza
 Projeto para fins educacionais, com foco em organização de horários e estruturas de dados.
 
 ---
