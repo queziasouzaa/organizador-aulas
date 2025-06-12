@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, timedelta
+from collections import defaultdict
 
-# Tempo das sessões
 HORARIO_MANHA = ("09:00", "12:00")
 HORARIO_TARDE = ("13:00", "17:00")
 
@@ -27,20 +27,20 @@ class Sessao:
         self.duracao_max = duracao_max
         self.horario_atual = 0
         self.aulas = []
-        self.professores_ocupados = set()
+        self.professores_ocupados = []
 
     def pode_alocar(self, aula):
         if self.horario_atual + aula.duracao > self.duracao_max:
             return False
-        if aula.professor in self.professores_ocupados:
-            return False
+        for hora, a in self.aulas:
+            if a.professor == aula.professor:
+                return False
         return True
 
     def alocar(self, aula):
         if self.pode_alocar(aula):
             hora_formatada = minutos_para_hora(self.hora_inicio, self.horario_atual)
             self.aulas.append((hora_formatada, aula))
-            self.professores_ocupados.add(aula.professor)
             self.horario_atual += aula.duracao
             return True
         return False
@@ -55,21 +55,17 @@ class Dia:
         return self.manha.alocar(aula) or self.tarde.alocar(aula)
 
     def imprimir(self):
-        print(self.formatar())
-
-    def formatar(self):
-        linhas = [f"\n{self.nome}:"]
+        print(f"\n📅 {self.nome}:")
         for sessao in [self.manha, self.tarde]:
-            linhas.append("")
+            print()
             if not sessao.aulas:
-                linhas.append(f"{sessao.hora_inicio} (sem aulas disponíveis)")
+                print(f"{sessao.hora_inicio} (sem aulas disponíveis)")
             else:
                 for hora, aula in sessao.aulas:
-                    linhas.append(f"{hora} {aula.titulo} - {aula.professor} {aula.duracao}min")
+                    print(f"{hora} {aula.titulo} - {aula.professor} {aula.duracao}min")
             if sessao.tipo == "Manhã":
-                linhas.append("12:00 Intervalo para Almoço")
-        linhas.append("17:00 Reunião de Professores")
-        return "\n".join(linhas)
+                print("12:00 Intervalo para Almoço")
+        print("17:00 Reunião de Professores")
 
 def ler_aulas(arquivo):
     aulas = []
@@ -82,34 +78,37 @@ def ler_aulas(arquivo):
                     aulas.append(Aula(titulo.strip(), professor.strip(), duracao.strip()))
     return aulas
 
-def obter_grade_formatada(aulas):
+def organizar_aulas(aulas):
     dias_da_semana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira"]
-    aulas_ordenadas = sorted(aulas, key=lambda x: -x.duracao)
-    dias = [Dia(nome) for nome in dias_da_semana]
-
+    aulas_unicas = list({(a.titulo, a.professor, a.duracao): a for a in aulas}.values())
+    aulas_restantes = sorted(aulas_unicas, key=lambda x: -x.duracao)
+    dias = []
     dia_index = 0
-    for aula in aulas_ordenadas:
-        alocada = False
-        tentativas = 0
-        while not alocada and tentativas < len(dias):
-            dia = dias[dia_index % len(dias)]
-            if dia.tentar_alocar(aula):
-                alocada = True
-            else:
-                dia_index += 1
-                tentativas += 1
-        if not alocada:
-            novo_nome = f"Dia Extra {len(dias) + 1}"
-            novo_dia = Dia(novo_nome)
-            novo_dia.tentar_alocar(aula)
-            dias.append(novo_dia)
 
-    return "\n".join([dia.formatar() for dia in dias])
+    while aulas_restantes:
+        if dia_index >= len(dias):
+            nome = dias_da_semana[dia_index] if dia_index < len(dias_da_semana) else f"Dia Extra {dia_index + 1}"
+            dias.append(Dia(nome))
 
-def organizar_aulas(arquivo="aulas.txt"):
-    aulas = ler_aulas(arquivo)
-    resultado = obter_grade_formatada(aulas)
-    print(resultado)
+        dia = dias[dia_index]
+        ainda_restam = []
+
+        for aula in aulas_restantes:
+            if not dia.tentar_alocar(aula):
+                ainda_restam.append(aula)
+
+        aulas_restantes = ainda_restam
+        dia_index += 1
+
+    if aulas_restantes:
+        for aula in aulas_restantes:
+            for dia in dias:
+                if dia.tentar_alocar(aula):
+                    break 
+
+    for dia in dias:
+        dia.imprimir()
 
 if __name__ == "__main__":
-    organizar_aulas()
+    aulas = ler_aulas("aulas.txt")
+    organizar_aulas(aulas)
